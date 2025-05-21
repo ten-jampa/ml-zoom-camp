@@ -1,6 +1,6 @@
 ############################### 
 # In this file, I want to store the helper functions that I 
-# have defined and use over the regression lab
+# have defined and use over the classification lab
 ###################################
 
 #### Imports ####
@@ -12,18 +12,6 @@ import matplotlib.pyplot as plt
 import seaborn
 
 ## Data Preparation ##
-
-def clean_names(some_df):
-    assert isinstance(some_df, DataFrame)
-    some_df = some_df.columns.str.lower().str.replace(' ', '_')
-    return some_df
-
-def clean_data_entries(some_df):
-    assert isinstance(some_df, DataFrame)
-    for feature in some_df.columns:
-        if some_df[feature].dtypes == 'object':
-            some_df[feature] = some_df[feature].str.lower().replace(' ', '_')
-    return some_df
 
 def clean_names(some_df):
     assert isinstance(some_df, DataFrame)
@@ -60,6 +48,34 @@ def shuffle_dataset(df, seed = 42):
     
     return train, val, test
 
+
+def one_hot_encoding(some_df, categorical):
+    some_df = some_df.copy()
+    for c in categorical:
+        for unique_dim in some_df[c].unique():
+            some_df[unique_dim] = (some_df[c] == unique_dim).astype(int)
+    return some_df
+
+def get_target_vector(df, feature, remove = True):
+    #returns the target values as np array
+    #removes the target from the data if remove is True
+    ytarget = df[feature]
+    if remove:
+        del df[feature]
+    return ytarget.values
+
+def prepare_X(some_df, fill = 0):
+    some_df = some_df.copy()
+    #we are filling the null values with zero
+    some_df = some_df.fillna(fill)
+    X = some_df.values #np array
+
+    ones  = np.ones(X.shape[0]) 
+    X = np.column_stack([ones, X])
+
+    return X
+
+
 ######### Functionals ###########
 def sigmoid(z):
     return 1/(1 + np.exp(-z))
@@ -72,6 +88,7 @@ def logistic_regression(X, w):
     return sigmoid(z)
 
 ######### Training ###########
+
 def train_linear_model(X, y):
     #we use normal equation
     assert X.shape[0] == y.shape[0]
@@ -95,7 +112,6 @@ def rmse(ytrues, ypreds):
 def evaluate(Xtest, ytest, w, metric = rmse):
     yhats = linear_model(Xtest, w)
     return metric(ytest, yhats)
-
 
 
 
